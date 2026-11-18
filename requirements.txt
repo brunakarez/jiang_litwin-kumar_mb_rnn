@@ -1,0 +1,8 @@
+# Runtime dependencies used by the model and plots
+numpy==1.26.4
+matplotlib==3.8.4
+torch==2.2.2
+
+# Notebook kernel and interface for running test_notebook.ipynb
+ipykernel==6.29.5
+notebook==7.2.2
