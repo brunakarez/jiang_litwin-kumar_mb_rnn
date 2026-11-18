@@ -9,7 +9,7 @@ D = 20 #number of DANs
 U = 2 #size of input vector
 R = 1 #size of readout vector
 O = 60 #number of "other" (feedback) neurons
-S = 200 #size of input vector
+S = 200 #size of input vector (total number of KCs)
 
 dt = .5 #timestep
 tau = 5 #stdp time constant

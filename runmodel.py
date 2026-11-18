@@ -48,11 +48,11 @@ for ti in range(T):
 
 
     if dostdp:
-        dastdp = torch.relu(Jmd.mm(d))
+        dastdp = torch.relu(Jmd.mm(d)) # dopamine activity
         stdp_update = stdpfac * (-torch.einsum('ib,jb->ijb',(dastdp,sbar)) + torch.einsum('ib,jb->ijb',(dastdpbar,s[ti,:,:]))) #anti-Hebbian
         wfast = torch.relu(w + dt*(stdp_update - torch.relu(stdp_update - (wmax - w)))) #update that does not exceed wmax
         w = w + (dt/tauw)*(wfast - w)
 
         dastdpbar = (1. - dt/tau)*dastdpbar + (dt/tau)*dastdp
-        sbar = (1. - dt/tau)*sbar + (dt/tau)*s[ti,:,:]
+        sbar = (1. - dt/tau)*sbar + (dt/tau)*s[ti,:,:] # update low-pass trace
         dacost += torch.sum(torch.pow(torch.relu(d*baselineinds_d[ti,:,:]-dinit),2))
