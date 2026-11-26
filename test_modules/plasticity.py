@@ -12,7 +12,6 @@ def update_kc_mbon_weights(W: torch.Tensor, r_kc: torch.Tensor, r_dan: torch.Ten
     r_kc : torch.Tensor
         The current firing rates of the KCs.
     r_dan : torch.Tensor
-        The current firing rates of the DANs.
     rbar_kc : torch.Tensor
         The low-pass filtered firing rates of the KCs.
     rbar_dan : torch.Tensor
