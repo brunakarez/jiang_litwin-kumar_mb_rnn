@@ -70,22 +70,41 @@ def plottarg(r,rtarg,tinfo): #plot target valence
     plt.yticks(())
 
 
-def plotunits(r,tinfo): #plot activity of model neurons
-    tranges = (np.arange(5,50),np.arange(65,110),np.arange(125,180)) #time intervals to plot
+def plotunits(r,tinfo):
+    """Plot each neuron's activity as an offset trace over trial segments.
+
+    Parameters
+    ----------
+    r : ndarray, shape (T, D)
+        Activity over time for one batch item, typically the DAN activity.
+    tinfo : dict
+        Metadata for the trial, used by ``plotfill`` to shade stimulus and
+        reinforcement periods.
+
+    The function draws into the current Matplotlib axes and returns nothing.
+    """
+    # Show the three task intervals and leave the gaps between them blank.
+    tranges = (np.arange(5,50),np.arange(65,110),np.arange(125,180))
+
+    # Vertically separate activity traces so individual neurons can be seen.
     hdiff = 1.
-    N = r.shape[1]
     count = 0
-    inds = np.arange(D)
+    trial_length, nb_neurons = np.shape(r)
+    inds = np.arange(nb_neurons)  # indices of neurons to plot
     for ind in inds:
         for trange in tranges:
+            # Plot the same neuron across each displayed interval, with a
+            # per-neuron vertical offset to avoid overlapping traces.
             plt.plot(trange,r[trange,ind]+hdiff*count,"k")
         count += 1
 
+    # Shade the trial events behind all traces.
     hmax = len(inds)*hdiff
     hmin = 0
-
     plotfill(tinfo,hmin,hmax)
 
+    # Activity is displayed without tick labels; the shared trial timeline
+    # and event shading provide the context for the traces.
     plt.yticks(())
-    plt.xlim(0,T)
+    plt.xlim(0,trial_length)
     plt.xticks(())
