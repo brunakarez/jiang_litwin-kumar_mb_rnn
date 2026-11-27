@@ -82,15 +82,19 @@ def plotunits(r,tinfo):
         reinforcement periods.
 
     The function draws into the current Matplotlib axes and returns nothing.
+    The x-axis positions remain in simulation steps so they line up with the
+    event shading; tick labels are converted to seconds using the global ``dt``.
     """
     # Show the three task intervals and leave the gaps between them blank.
     tranges = (np.arange(5,50),np.arange(65,110),np.arange(125,180))
 
-    # Vertically separate activity traces so individual neurons can be seen.
-    hdiff = 1.
+    # Vertically separate activity traces; 1.5 leaves visible space between
+    # adjacent traces whose rectified activity is typically between 0 and 1.
+    hdiff = 1.5
     count = 0
     trial_length, nb_neurons = np.shape(r)
-    inds = np.arange(nb_neurons)  # indices of neurons to plot
+    nb_neurons_plot = nb_neurons//2
+    inds = np.arange(nb_neurons_plot)  # indices of neurons to plot
     for ind in inds:
         for trange in tranges:
             # Plot the same neuron across each displayed interval, with a
@@ -103,8 +107,11 @@ def plotunits(r,tinfo):
     hmin = 0
     plotfill(tinfo,hmin,hmax)
 
-    # Activity is displayed without tick labels; the shared trial timeline
-    # and event shading provide the context for the traces.
+    # Hide the neuron-index scale, but label simulation times in seconds.
     plt.yticks(())
     plt.xlim(0,trial_length)
-    plt.xticks(())
+    tick_interval_s = 20.
+    tick_times_s = np.arange(0, trial_length*dt + 1e-9, tick_interval_s)
+    tick_steps = tick_times_s / dt
+    plt.xticks(tick_steps, [f"{time_s:g}" for time_s in tick_times_s])
+    plt.xlabel("Time (s)")

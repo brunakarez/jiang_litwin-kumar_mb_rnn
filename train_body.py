@@ -1,0 +1,90 @@
+import torch
+import time
+from torch.autograd import Variable
+import numpy as np
+import matplotlib.pyplot as plt
+
+if norecur:
+    # Disable selected recurrent pathways and optimize only the remaining
+    # trainable parameters (the feedback-to-DAN pathway, biases, inputs, readout).
+    Jmm.data[:] = 0
+    Jmo.data[:] = 0
+    Jdm.data[:] = 0
+    Jdd.data[:] = 0
+    Jom.data[:] = 0
+    Jod.data[:] = 0
+    Joo.data[:] = 0
+    train_vars = [Jdo,bm,bd,bo,wou,wrm]
+
+exec(open("gentrials.py").read())
+
+# RMSprop updates the network parameters after each batch. KC-to-MBON weights
+# are updated online inside runmodel.py, not by this optimizer.
+opt = torch.optim.RMSprop(train_vars,lr=lr[0])
+
+# Store one scalar training loss per epoch.
+track_loss = np.zeros(Nepochs)
+
+lastt = time.time()
+for ei in range(Nepochs):
+    # Apply this epoch's learning rate (currently constant across epochs).
+    for g in opt.param_groups:
+        g['lr'] = lr[ei]
+
+    # Generate B new trial sequences and their desired readout trajectories.
+    s0,u0,rtarg0,tinfo = genrandtrials(B,probs)
+
+    # Reset neural activity, plastic KC-to-MBON weights, and eligibility traces
+    # at the beginning of each trial in the batch.
+    m0,d0,o0,w0,sbar0,dastdpbar0 = geninitialcond(B)
+
+    # Simulate the trial through time, producing activity, readout, and loss
+    # components used below. runmodel.py reads the arrays and parameters above.
+    exec(open("runmodel.py").read())
+
+    # Match the model readout to the target valence and penalize excess
+    # dopamine activity during baseline periods.
+    loss_err = torch.sum(torch.pow(r-rtarg,2))/B
+    loss_da = alphada*dacost/B
+    loss = loss_err + loss_da
+    track_loss[ei] = loss
+
+    # Backpropagate through the simulated batch and update train_vars.
+    loss.backward()
+    opt.step()
+    opt.zero_grad()
+
+    # Periodically show the loss history plus one example trial (batch item 0).
+    if (ei % Nepochspc) == 0:
+        if doplot:
+            plt.clf()
+            fig = plt.figure(figsize=(6,8))
+            plt.subplot(411)
+            if ei > 0:
+                plt.semilogy(track_loss[:ei])
+            plt.xlim(0,Nepochs)
+            plt.xlabel("epoch")
+            plt.ylabel("loss")
+
+            plt.subplot(412)
+            plottarg(r.detach().numpy()[:,:,0],rtarg.detach().numpy()[:,:,0],tinfo[0])
+            plt.ylabel("valence")
+
+            plt.subplot(413)
+            plotunits(da[:,:,0],tinfo[0])
+            plt.ylabel("DAN activity")
+            plt.xlabel("Time (s)")
+
+            plt.subplot(414)
+            plotunits(ma[:,:,0],tinfo[0])
+            plt.ylabel("MBON activity")
+            plt.xlabel("Time (s)")
+
+            plt.tight_layout()
+
+            plt.pause(.0001)
+            plt.show()
+
+        curt = time.time()
+        print("\r" + str(int(ei/Nepochspc)) + "%, ", np.round(curt-lastt,2), "seconds", end="")
+        lastt = curt

@@ -90,21 +90,27 @@ for ei in range(Nepochs):
     if (ei % Nepochspc) == 0:
         if doplot:
             plt.clf()
-            plt.subplot(311)
+            fig = plt.figure(figsize=(6,8))
+            plt.subplot(411)
             if ei > 0:
                 plt.semilogy(track_loss[:ei])
             plt.xlim(0,Nepochs)
             plt.xlabel("epoch")
             plt.ylabel("loss")
 
-            plt.subplot(312)
+            plt.subplot(412)
             plottarg(r.detach().numpy()[:,:,0],rtarg.detach().numpy()[:,:,0],tinfo[0])
             plt.ylabel("valence")
 
-            plt.subplot(313)
+            plt.subplot(413)
             plotunits(da[:,:,0],tinfo[0])
             plt.ylabel("DAN activity")
-            plt.xlabel("time")
+            plt.xlabel("Time (s)")
+
+            plt.subplot(414)
+            plotunits(ma[:,:,0],tinfo[0])
+            plt.ylabel("MBON activity")
+            plt.xlabel("Time (s)")
 
             plt.tight_layout()
 
